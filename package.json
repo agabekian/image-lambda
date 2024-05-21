@@ -1,0 +1,20 @@
+{
+  "name": "image-lambda",
+  "version": "0.0.1",
+  "description": "aws lambda, s3",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aws",
+    "s3",
+    "lambda"
+  ],
+  "author": "agabekian",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.577.0"
+  }
+}
