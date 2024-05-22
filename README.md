@@ -1,8 +1,10 @@
 # image-lambda 
 #### (Lab17 | 5.21.24)
-
+App:
+https://github.com/agabekian/image-lambda/blob/main  
+link to `images.json`
 >https://us-west-2.console.aws.amazon.com/s3/buckets/images401?region=us-west-2&bucketTyp
-(If given Acces error download the json file.)
+(If given Acces error, please download the json file.)
 #### HOW TO USE:
 **Uploading image to AWS will trigger update (PUT) of images.json file with selected image metadata.**    
 #### NOTES:
