@@ -1,50 +1,66 @@
-/*
-  In express, this happens
-  app.get('/something', handler);
-
-  In socket apps, this happens
-  socket.on('alert', handler)
-
-  At AWS, this happens:
-  aws.on('S3 upload', handler);
-  aws.on('EB deploy success', handler)
-
-*/
-
 import {S3Client, GetObjectCommand, PutObjectCommand} from '@aws-sdk/client-s3';
 
+const BUCKET_NAME = 'images401'; // Replace with your bucket name
+const REGION = 'us-west-2'; // Replace with your region
+const IMAGES_JSON_KEY = 'images.json';
+
+const s3Client = new S3Client({region: REGION});
+
 export const handler = async (event) => {
-
-    // All of my code logic goes here...
-    // event carries the "payload". In our case, it's under event.body
-    // console.log(JSON.stringify(event, undefined, 2));
-
-    let s3Client = new S3Client({ region:'us-west-2'});
-    let name = event.Records[0].s3.object.key;  // images/bubble.jpg
+    //extract from event
+    let name = event.Records[0].s3.object.key;
     let size = event.Records[0].s3.object.size;
-    let type = name.split('.')[1];
-    let imageDetails = { name, size, type };
-    console.log('Adding', imageDetails);
+    let type = '.jpg';
+    let newImageDetails = {name, size, type}
+    let imgDetails;
+    const bucketArgs = {
+        Bucket: BUCKET_NAME,
+        Key: IMAGES_JSON_KEY,
+    }
 
 
-    // Download "images.json" from the bucket
-    // const images = .... MAGIC!
+    try {
 
-    // It should be an array
-    // Add information about this image to the array
-    // images.push(imageDetails);
+        const command = new GetObjectCommand(bucketArgs);//init new com
 
-    // re-upload images.json
-    // Make sure you have proven that this will NOT run if you upload the images.json file!
+        const result = await s3Client.send(command); //send
 
-    // function always responds with an object that has "statusCode" and "body"
-    // eg. response.status(200).send("hello from lambda");
+        let response = new Response(result.Body) // satisfies the results "promise"-more info
+
+        imgDetails = await response.json() // usable array,at this point we have the array if json exists
+
+    } catch
+        (error) {
+        if (error.name === 'NoSuchKey') {
+            return [];
+        }
+        throw error;
+    }
+
+    imgDetails.push(newImageDetails);
+    let stringifiedDetails = JSON.stringify(
+        imgDetails, undefined, '  '
+    );
+    console.log('stringified', stringifiedDetails);
+
+    let putInput = {
+        ...bucketArgs,
+        Body: stringifiedDetails,
+        ContentType: 'application/json' //For JSON, it's always such :)
+    }
+    console.log('put input object', putInput);
+
+    try {
+        await s3Client.send(new PutObjectCommand(putInput));
+    } catch (e) {
+        console.warn('failed to put', e)
+    }
+
+
     const response = {
         statusCode: 200,
-        body: `Uploaded an image!`
+        body: `Uploaded an image and updated images.json!`
     };
-
     return response;
-
-
 };
+
